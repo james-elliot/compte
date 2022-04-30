@@ -34,10 +34,13 @@ const OPS: [fn(i64, i64) -> Option<i64>; 4] =
 #[derive(Debug,Clone)]
 enum Computation {
     Node(usize,i64,i64,Box<Computation>),
-    End
+    End,
+    Nothing
 }
-use crate::Computation::{End,Node};
+
+use crate::Computation::{End,Node,Nothing};
 use core::cmp::{min,max};
+
 fn print_tree(t:Computation) {
     match t {
 	Node(i,a,b,t2) => {
@@ -46,29 +49,27 @@ fn print_tree(t:Computation) {
 	    println!("{}{}{}={}",a,OPSN[i],b,f(a,b).unwrap());
 	    print_tree(*t2)
 	},
-	End => {}
+	End|Nothing => {}
     }
 }
 
-fn test(a:&Vec<i64>, goal:i64) -> Option<Computation> {
+fn test(a:&Vec<i64>, goal:i64) -> Computation {
     let mut newa = Vec::with_capacity(a.len()-1);
     for i in 0..a.len() {
 	for j in i+1..a.len() {
 	    for k in 0..OPS.len() {
 		match OPS[k](a[i],a[j]) {
 		    Some (r) => {
-			if r == goal {return Some(Node(k,a[i],a[j],Box::new(End)))}
+			if r == goal {return Node(k,a[i],a[j],Box::new(End))}
 			if a.len() > 2 {
-			    let mut m=0;
 			    newa.clear();
-			    for _l in 0..newa.capacity()-1 {
-				if m!=i && m!=j {newa.push(a[m])}
-				m=m+1;
-			    }
+			    for m in 0..a.len() {if m!=i && m!=j {newa.push(a[m])}}
 			    newa.push(r);
-			    match test(&newa,goal) {
-				Some(v) => return Some(Node(k,a[i],a[j],Box::new(v))),
-				None => {}
+			    let res = test(&newa,goal);
+			    match  res {
+				Node(..) => return Node(k,a[i],a[j],Box::new(res)),
+				Nothing => {},
+				End => panic!("Never!!!")
 			    }
 			}
 		    }
@@ -77,17 +78,12 @@ fn test(a:&Vec<i64>, goal:i64) -> Option<Computation> {
 	    }
 	}
     }
-    return None
+    return Nothing
 }
 
 fn main() {
-    let t = [1,2,3,4,5,6,7,8,9,10,11];
-    let g = 99999;
+    let t = [1,2,3,4,5,6,7,8];
+    let g = 9999999;
     let res = test(&t.to_vec(),g);
-    match res {
-	None=>{}
-	Some(t) => {
-	    print_tree(t);
-	}
-    }
+    print_tree(res);
 }
