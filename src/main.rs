@@ -1,3 +1,6 @@
+// Usage: compte 1 2 3 4 5 6 256
+// There can be any number of arguments, the last one is always the number to find
+
 fn add(a:i64,b:i64) -> Option<i64> {
     return Some(a+b)
 }
@@ -44,9 +47,8 @@ use core::cmp::{min,max};
 fn print_tree(t:Computation) {
     match t {
 	Node(i,a,b,t2) => {
-	    let f=OPS[i];
 	    let (a,b)=(max(a,b),min(a,b));
-	    println!("{}{}{}={}",a,OPSN[i],b,f(a,b).unwrap());
+	    println!("{}{}{}={}",a,OPSN[i],b,OPS[i](a,b).unwrap());
 	    print_tree(*t2)
 	},
 	End|Nothing => {}
@@ -81,9 +83,11 @@ fn test(a:&Vec<i64>, goal:i64) -> Computation {
     return Nothing
 }
 
+use std::env;
 fn main() {
-    let t = [1,2,3,4,5,6,7,8];
-    let g = 9999999;
-    let res = test(&t.to_vec(),g);
-    print_tree(res);
+    let args: Vec<String> = env::args().collect();
+    let g = args[args.len()-1].parse().unwrap();
+    let mut t = Vec::with_capacity(args.len()-2);
+    for i in 1..args.len()-1 {t.push(args[i].parse().unwrap())}
+    print_tree(test(&t,g));
 }
