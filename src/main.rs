@@ -6,8 +6,16 @@ fn add(a:i64,b:i64) -> Option<i64> {
 }
 
 fn sub(a:i64,b:i64) -> Option<i64> {
-    if a>b {return Some(a-b)}
-    else if a<b {return Some(b-a)}
+    if a>b {
+	let res = a-b;
+	if res != b {return Some(res)}
+	else {return None}
+    }
+    else if a<b {
+	let res = b-a;
+	if res != a {return Some(res)}
+	else {return None}
+    }
     else {return None}
 }
 
@@ -18,11 +26,19 @@ fn mul(a:i64,b:i64) -> Option<i64> {
 
 fn div(a:i64,b:i64) -> Option<i64> {
     if a > b {
-	if b != 1 && a%b == 0 {return Some(a/b)}
+	if b != 1 && a%b == 0 {
+	    let res = a/b;
+	    if res != b {return Some(res)}
+	    else {return None}
+	}
 	else {return None}
     }
     else {
-	if a != 1 && b%a == 0 {return Some(b/a)}
+	if a != 1 && b%a == 0 {
+	    let res = b/a;
+	    if res != a {return Some(res)}
+	    else {return None}
+	}
 	else {return None}
     }
 }
@@ -68,7 +84,7 @@ fn test(a:&Vec<i64>, goal:i64) -> Computation {
 			    for m in 0..a.len() {if m!=i && m!=j {newa.push(a[m])}}
 			    newa.push(r);
 			    let res = test(&newa,goal);
-			    match  res {
+			    match res {
 				Node(..) => return Node(k,a[i],a[j],Box::new(res)),
 				Nothing => {},
 				End => panic!("Never!!!")
