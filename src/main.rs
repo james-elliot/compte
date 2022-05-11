@@ -1,5 +1,6 @@
-// Usage: compte 1 2 3 4 5 6 256
-// There can be any number of arguments, the last one is always the number to find
+// This is NOT a very efficient code.
+// Efficiency requires the use of hash tables
+// See my paper: http://arxiv.org/abs/1502.05450 
 
 fn add(a:i64,b:i64) -> Option<i64> {
     return Some(a+b)
@@ -108,6 +109,9 @@ fn all(a:&Vec<i64>,tab:&mut[bool]){
 
 use std::env;
 
+// Usage: cargo run --release 1 2 3 4 5 6 256
+// There can be any number of arguments
+// the last one is always the number to find
 #[allow(dead_code)]
 fn solve_one() {
     let args: Vec<String> = env::args().collect();
@@ -115,16 +119,6 @@ fn solve_one() {
     let mut t = Vec::with_capacity(args.len()-2);
     for i in 1..args.len()-1 {t.push(args[i].parse().unwrap())}
     print_tree(test(&t,g));
-}
-
-fn gen_numbers() -> Vec<i64> {
-    let mut t = Vec::new();
-    for i in 1..11 {t.push(i);t.push(i)}
-    t.push(25);
-    t.push(50);
-    t.push(75);
-    t.push(100);
-    return t;
 }
 
 #[allow(dead_code)]
@@ -141,41 +135,65 @@ fn solve_all() {
     println!("{}",n);
 }
 
-const SIZE:usize = 6;
+// Generates the classical set of numbers
+fn gen_numbers() -> Vec<i64> {
+    let mut t = Vec::new();
+    for i in 1..11 {t.push(i);t.push(i)}
+    t.push(25);
+    t.push(50);
+    t.push(75);
+    t.push(100);
+    return t;
+}
+
+//Usage: cargo run --release 6 100 1000
 use std::collections::HashSet;
-fn main() {
+fn solve_classical() {
+    let args: Vec<String> = env::args().collect();
+    let size = args[1].parse().unwrap();
+    let inf  = args[2].parse().unwrap();
+    let sup  = args[3].parse().unwrap();
     let nums = gen_numbers();
-    let mut ind = [0;SIZE];
+    let mut ind = Vec::with_capacity(size);
     let mut nbset = HashSet::new();
-    for i in 0..SIZE {
-	ind[i]=i;
+    for i in 0..size {
+	ind.push(i);
     }
-    let mut cnt = 0;
+    let (mut cnt,mut cnt2) = (0,0);
     loop {
-	let mut t = Vec::with_capacity(SIZE);
-	for i in 0..SIZE {t.push(nums[ind[i]])}
+	let mut t = Vec::with_capacity(size);
+	for i in 0..size {t.push(nums[ind[i]])}
 	if !nbset.contains(&t) {
 	    nbset.insert(t.clone());
-	    let mut tab = [false;1000];
+	    let mut tab = vec![false;sup];
 	    all(&t,&mut tab);
 	    let mut n = 0;
-	    for i in 100..tab.len() {
+	    for i in inf..tab.len() {
 		if tab[i] {n=n+1}
 	    }
-	    if n == 900 {println!("i={:?} t={:?} n={}",ind,t,n)}
+	    if n == sup-inf {
+		cnt2=cnt2+1;
+		println!("t={:?} n={}",t,n)
+	    }
 	    cnt=cnt+1;
 	}
-	for i in (0..SIZE).rev() {
+	for i in (0..size).rev() {
 	    ind[i]=ind[i]+1;
-	    if ind[i] < nums.len()-(SIZE-1-i) {break}
+	    if ind[i] < nums.len()-(size-1-i) {break}
 	    ind[i]=0;
 	    if i==0 {
-		println!("cnt={}",cnt);
+		println!("cnt={} cnt2={}",cnt,cnt2);
 		return
 	    }
 	}
-	for i in 1..SIZE {
+	for i in 1..size {
 	    if ind[i]<=ind[i-1] {ind[i]=ind[i-1]+1}
 	}
     }
+}
+
+fn main() {
+    // solve_one();
+    // solve_all();
+    solve_classical();
 }
